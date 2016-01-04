@@ -54,14 +54,14 @@ cone_filter_2d = np.sqrt(np.outer(ramp_filter*ramp_filter,ramp_filter*ramp_filte
 filtered_convolved = cone_filter_2d[np.newaxis,:,:]* convolved
 tomo_r1_filtered = sht.MakeGridDH(filtered_convolved,sampling=2,csphase=1)
 
-#centrifugal potential, due to Earth's rotation
-V_c = -(1./2.) * (omega**2) * (r0_pot_earth**2) * (np.sin(co_lats)**2)
-
-#unitless centrifugal potential
-V_c_unitless = V_c*Re_EGM08/G_Me
-
-#EGM08 grid minus centrifugal potential, leaving potential due to masses
-no_cetrifugal_grid = grid + V_c_unitless[:,np.newaxis]
+# centrifugal potential, due to Earth's rotation
+# V_c = -(1./2.) * (omega**2) * (r0_pot_earth**2) * (np.sin(co_lats)**2)
+# 
+# unitless centrifugal potential
+# V_c_unitless = V_c*Re_EGM08/G_Me
+# 
+# EGM08 grid minus centrifugal potential, leaving potential due to masses
+# no_cetrifugal_grid = grid + V_c_unitless[:,np.newaxis]
 
 
 #our J2n coefficients for our gravitational potential perturbation
@@ -70,6 +70,7 @@ def J2n(n, J2 = 1.08263E-3, a = 6378137., E = 522000.):
 	sgn = (-1)**(n+1)
 	ans = (sgn*(3.*ellip**(2*n))/(((2.*n)+1.)*((2.*n)+3.))) * (1.-n+((5.*n)/(ellip**2))*J2)
 	return ans
+
 
 def deltaCnm(n,m,J2N):
 	"""
