@@ -64,3 +64,31 @@ V_c_unitless = V_c*Re_EGM08/G_Me
 no_cetrifugal_grid = grid + V_c_unitless[:,np.newaxis]
 
 
+#our J2n coefficients for our gravitational potential perturbation
+def J2n(n, J2 = 1.08263E-3, a = 6378137., E = 522000.):
+	ellip = E / a
+	sgn = (-1)**(n+1)
+	ans = (sgn*(3.*ellip**(2*n))/(((2.*n)+1.)*((2.*n)+3.))) * (1.-n+((5.*n)/(ellip**2))*J2)
+	return ans
+
+def deltaCnm(n,m,J2N):
+	"""
+		Computes the elliptical Earth correction terms to the SH expansion.
+		We will subtract what is returned by this function from Cnm, the SH coeffs of V.
+	"""
+	if n == 0:
+		#not perturbing C00
+		#IF we decide to keep the mass of the Earth in the calculation, this subtracts zero from that value.
+		#IF NOT, this still subtracts zero from it.
+		return 0.
+	elif (m == 0) and ((n % 2) == 0):
+		#we have even degree and zero order
+		#we correct the zonal coefficient by subtracting this value from it
+		return -J2n(n)/np.sqrt((2.*n)+1)
+	else:
+		#all other cases, do not perturb the SH coefficients
+		return 0.
+
+
+
+
