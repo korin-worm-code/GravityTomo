@@ -17,7 +17,7 @@ f_earth = 0.003352810681183637418
 pot_ref_geoid_earth = 6263686.0850E1
 
 # Setting our density shell radius
-r_i = 0.9 * 6371000.
+r_i = 6371000.
 
 # Creating the geoid
 geoid = sht.MakeGeoidGridDH(coeffs,
@@ -53,31 +53,24 @@ def make_Rpm(R_e, r_i, co_lats, shp):
 # Defining colatitudes
 co_lats = np.linspace(0., np.pi, num = T.shape[0], endpoint=True)
 
-# Defining coordinates of shell of radius r_i
-rpm_2D = -make_Rpm(R_e = 6371000., r_i = r_i, co_lats = co_lats, shp = T.shape)
+rpm_2D_set = []
+rpm_2D_SH_set = []
+i = 0
+i_change = 10
+max_depth = 3000
 
-# Expanding to find SH coefficients for shell of radius r_i
-rpm_2D_SH = sht.SHExpandDH(rpm_2D)
-
-
-kernel_1 = rpm_2D_SH[0, :, 0]
-
-
-# Function for distance from point of reference to all points on density shell
-def make_Rpm(R_e, r_i, co_lats, shp):
-    rpm_1D = np.sqrt(-2. * r_i * R_e * np.cos(co_lats) + R_e**2 + r_i**2 )
-    PlB = sht.PlBar(T.shape[0], co_lats)
-    rpm_PlB = rpm_1D * PlB
-    return rpm_PlB
-
-# Defining colatitudes
-co_lats = np.linspace(0., np.pi, num = T.shape[0], endpoint=True)
-
-# Defining coordinates of shell of radius r_i
-rpm_PlB = -make_Rpm(R_e = 6371000., r_i = r_i, co_lats = co_lats, shp = T.shape)
+while i <= max_depth:
+	r_i_shell = r_i - (i * 1000)
+	# Defining coordinates of shell of radius r_i
+	rpm_2D = -make_Rpm(R_e = 6371000., r_i = r_i_shell, co_lats = co_lats, shp = T.shape)
+	rpm_2D_set += [i,rpm_2D]
+	# Expanding to find SH coefficients for shell of radius r_i
+	rpm_2D_SH = sht.SHExpandDH(rpm_2D)
+	kernel = rpm_2D_SH[0, :, 0]
+	rpm_2D_SH_set += [i,kernel]
+	i = i + i_change
 
 
-kernel_2 = rpm_PlB
 
 # Convolution of density shell with T
 convolved = kernel[np.newaxis, :, np.newaxis] * T_SH
