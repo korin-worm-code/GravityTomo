@@ -63,14 +63,18 @@ while i <= max_depth:
 	r_i_shell = r_i - (i * 1000)
 	# Defining coordinates of shell of radius r_i
 	rpm_2D = -make_Rpm(R_e = 6371000., r_i = r_i_shell, co_lats = co_lats, shp = T.shape)
-	rpm_2D_set += [i,rpm_2D]
+	rpm_2D_set += [[i,rpm_2D]]
 	# Expanding to find SH coefficients for shell of radius r_i
 	rpm_2D_SH = sht.SHExpandDH(rpm_2D)
 	kernel = rpm_2D_SH[0, :, 0]
-	rpm_2D_SH_set += [i,kernel]
+	rpm_2D_SH_set += [[i,kernel]]
 	i = i + i_change
 
 
+# Desired layer to look at
+desired = 10
+
+kernel_i = rpm_2D_set[desired][1]
 
 # Convolution of density shell with T
 convolved = kernel[np.newaxis, :, np.newaxis] * T_SH
