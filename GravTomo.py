@@ -13,14 +13,58 @@ gm_earth = sht.constant.gm_earth
 G_Me = 3986004.415E8
 Re_EGM08 = 6378136.3
 
+# These are appropriate values for the GRS80 model
+omega_earth = 7.292115e-5
+a_earth = 6378137.
+b_earth = 6356752.3141
+GM_earth = 3.986005e14
+f_earth = 0.003352810681183637418
+pot_ref_geoid_earth = 6263686.0850E1
+
 #Setting our density shell radius
 r_i = 0.9*r0_pot_earth
 
 #rotational velocity of earth, in radians/second
 omega = 2. * np.pi / (24.*60.*60.)
 
-#making a grid out of the EGM08 SH coefficients
-grid = sht.MakeGridDH(coeffs,sampling=2,csphase=1)
+
+
+grav = sht.MakeGravGridDH(coeffs,
+                          gm = GM_earth,
+                          r0 = a_earth,
+                          omega=omega_earth,
+                          a = a_earth,
+                          f = f_earth,
+                          normal_gravity = 1)
+
+
+geoid = sht.MakeGeoidGridDH(coeffs,
+                            r0pot = a_earth,
+                            GM = GM_earth,
+                            PotRef=pot_ref_geoid_earth,
+                            omega=omega_earth,
+                            a = a_earth,
+                            f = f_earth)
+
+
+nlat,nlon = geoid.shape
+dlat = 360. / nlat
+lats = np.linspace(0. + (dlat / 2.), 360. - (dlat / 2.), nlat)
+normal_gravs = [sht.NormalGravity(lat,GM_earth,omega_earth,a_earth,b_earth) for lat in lats]
+ng = np.array(normal_gravs,np.float64)
+
+# Brun's formula
+T = geoid * ng[:,np.newaxis]
+
+gravity_disturbance_SH = sht.SHExpandDH(grav[0])
+
+anti_radial_deriv_op = -a_earth/np.arange(1.,gravity_disturbance_SH.shape[1]+1.,1.)
+
+T_SH = gravity_disturbance_SH * anti_radial_deriv_op[np.newaxis,:,np.newaxis]
+
+T_grid = sht.MakeGridDH(T_SH,sampling=2,csphase=1)
+
+
 
 #defining a function for the distance from our point of reference to every point on the density shell
 def make_Rpm(R_e,r_i,co_lats,shp):
@@ -30,7 +74,7 @@ def make_Rpm(R_e,r_i,co_lats,shp):
     return rpm_2D
 
 #defining our colatitudes
-co_lats = np.linspace(0.,np.pi,num=grid.shape[0],endpoint=True)
+co_lats = np.linspace(0.,np.pi,num=T.shape[0],endpoint=True)
 
 #defining the coordinates of our shell of radius r_i
 rpm_2D = -make_Rpm(R_e = r0_pot_earth, r_i = r_i, co_lats = co_lats, shp = grid.shape)
@@ -38,10 +82,11 @@ rpm_2D = -make_Rpm(R_e = r0_pot_earth, r_i = r_i, co_lats = co_lats, shp = grid.
 #expanding to find SH coefficients for shell of radius r_i
 rpm_2D_SH = sht.SHExpandDH(rpm_2D)
 
-#convolution of EGM08 coefficients with the shell of radius r_i
-convolved = rpm_2D_SH[0,:,0] * coeffs
-convolved_c20 = convolved[0,2,0]
-convolved[0,2,0] = 0.
+kernel =  rpm_2D_SH[0,:,0]
+
+
+convolved = kernel[np.newaxis,:,np.newaxis] * T_SH
+convolved[:,1,1] = 0.
 
 #grid of gravitational source values on shell of radius r_i
 tomo_r1 = sht.MakeGridDH(convolved,sampling=2,csphase=1)
@@ -51,17 +96,9 @@ ramp_filter = np.linspace(0.,1.,num=convolved.shape[1],endpoint=True)
 cone_filter_2d = np.sqrt(np.outer(ramp_filter*ramp_filter,ramp_filter*ramp_filter))
 
 #convolution of coefficients and shell after filterning
-filtered_convolved = cone_filter_2d[np.newaxis,:,:]* convolved
+filtered_convolved = cone_filter_2d[np.newaxis,:,:] * convolved
 tomo_r1_filtered = sht.MakeGridDH(filtered_convolved,sampling=2,csphase=1)
 
-# centrifugal potential, due to Earth's rotation
-# V_c = -(1./2.) * (omega**2) * (r0_pot_earth**2) * (np.sin(co_lats)**2)
-# 
-# unitless centrifugal potential
-# V_c_unitless = V_c*Re_EGM08/G_Me
-# 
-# EGM08 grid minus centrifugal potential, leaving potential due to masses
-# no_cetrifugal_grid = grid + V_c_unitless[:,np.newaxis]
 
 
 #our J2n coefficients for our gravitational potential perturbation
