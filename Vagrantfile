@@ -6,13 +6,11 @@ echo "shell provisioning"
 PROVISIONED_ON=/etc/vm_provision_on_timestamp
 sudo apt-get update
 sudo apt-get -y dist-upgrade
-sudo apt-get install -y virtualbox-guest-dkms python-scipy ipython-notebook python-matplotlib git python-pip atop gfortran-4.8
+sudo apt-get install -y virtualbox-guest-dkms python-scipy ipython-notebook python-matplotlib git python-pip atop fftw3 fftw3-dev liblapack-dev libblas-dev gfortran
 
-#pip install future
+pip install future
 
 pip install pyshtools
-
-pip install git+https://fghorow@bitbucket.org/fghorow/pyvtk-py3-port.git
 
 # Tag the provision time:
 date > "$PROVISIONED_ON"
