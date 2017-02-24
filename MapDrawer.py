@@ -65,7 +65,7 @@ class MapDrawer(object):
 
         if title <> None:
             plt.title(title)
-            transformed_img = self.BuildArray(m,img,lon_0)
+        transformed_img = self.BuildArray(m,img,lon_0)
         p = m.imshow(transformed_img,origin='upper',vmin=vmin,vmax=vmax,cmap=cmap,animated=True)
         cbar = m.colorbar(p,location='right',pad="5%")
         if units_label != None:
