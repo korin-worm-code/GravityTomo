@@ -6,11 +6,20 @@ echo "shell provisioning"
 PROVISIONED_ON=/etc/vm_provision_on_timestamp
 #sudo mkdir -p /vagrant
 
+# virtualbox appears to be horribly bufferbloated or something.
+# Let's try enabling fq_codel to see if that helps...
+sudo echo "net.core.default_qdisc=fq_codel" > /etc/sysctl.d/60-debloat.conf
+sudo sysctl -p
+
+
+
 sudo apt-get update
 #sudo apt-get -y dist-upgrade
-sudo apt-get install -y python-scipy ipython-notebook git python-pip fftw3 fftw3-dev liblapack-dev libblas-dev gfortran
+sudo apt-get install -y python-scipy python-matplotlib python-mpltoolkits.basemap git python-pip fftw3 fftw3-dev liblapack-dev libblas-dev gfortran
 
 pip install future
+
+pip install jupyter
 
 pip install pyshtools
 
