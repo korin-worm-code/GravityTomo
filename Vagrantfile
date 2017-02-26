@@ -4,9 +4,11 @@
 $provision_script = <<'EOF'
 echo "shell provisioning"
 PROVISIONED_ON=/etc/vm_provision_on_timestamp
+#sudo mkdir -p /vagrant
+
 sudo apt-get update
-sudo apt-get -y dist-upgrade
-sudo apt-get install -y virtualbox-guest-dkms python-scipy ipython-notebook python-matplotlib git python-pip atop fftw3 fftw3-dev liblapack-dev libblas-dev gfortran
+#sudo apt-get -y dist-upgrade
+sudo apt-get install -y python-scipy ipython-notebook git python-pip fftw3 fftw3-dev liblapack-dev libblas-dev gfortran
 
 pip install future
 
@@ -32,7 +34,10 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/xenial64"
+  #config.vm.box = "bento/ubuntu-16.04"
+  config.vm.box = "geerlingguy/ubuntu1604"
+  #config.vm.box = "ubuntu/yakkety64"
+
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -49,7 +54,7 @@ Vagrant.configure(2) do |config|
  
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
-  config.vm.network "private_network", ip: "192.168.33.11"
+  #config.vm.network "private_network", ip: "192.168.33.11"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
@@ -60,7 +65,7 @@ Vagrant.configure(2) do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder "./", "/vagrant"
+  #config.vm.synced_folder "./", "/vagrant"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -107,8 +112,8 @@ Vagrant.configure(2) do |config|
   config.vm.provision :shell, :inline => $provision_script
   
   # Fire off the Ipython notebook server
-  config.vm.provision "shell", run: "always", inline: <<-SHELL
-    ipython3 notebook --notebook-dir=/vagrant/src --no-browser --ip=0.0.0.0 &
+  config.vm.provision :shell, run: "always", inline: <<-SHELL
+    ipython notebook --notebook-dir=/vagrant --no-browser --ip=0.0.0.0 &
   SHELL
 
 end
