@@ -24,7 +24,7 @@ sudo apt-get update
 #sudo apt-get -y dist-upgrade
 
 # These are the packages we actually care need. They will bring in a whole raft of dependencies.
-sudo apt-get install -y python-scipy python-matplotlib git python-pip fftw3 fftw3-dev liblapack-dev libblas-dev gfortran libgeos-3.5.0 libgeos-dev ipython-notebook
+sudo apt-get install -y python-scipy git python-pip fftw3 fftw3-dev liblapack-dev libblas-dev gfortran libgeos-3.5.0 libgeos-dev ipython-notebook
 
 # This is where we specify Python specific things that aren't packaged by Ubuntu
 
@@ -38,6 +38,7 @@ pip install future
 pip install pyshtools
 
 # The xenial package of basemap has a serious bug that prevents Molleweide map projections from working; fixed in git.
+pip install matplotlib
 pip install git+https://github.com/matplotlib/basemap.git
 
 # Tag the provision time:
